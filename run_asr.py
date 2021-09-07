@@ -5,6 +5,7 @@
     Synopsis  [ End-to-end ASR training. ]
 '''
 
+import logging
 import argparse
 import json
 import os
@@ -91,11 +92,13 @@ def main():
 
     if not args.test:
         # Training
+        logging.info('Training mode.')
         tr_loader, dv_loader, _, model, trainer = \
             create_asr_trainer(args, device)
         trainer.fit(model, tr_loader, dv_loader)
     else:
         # Testing
+        logging.info('Testing mode.')
         _, dv_loader, _, model, trainer = \
             create_asr_trainer_test(args, device)
         model.eval()

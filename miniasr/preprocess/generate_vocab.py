@@ -24,6 +24,7 @@ def generate_word_char_vocab(text_list, out_file, vocab_size=5000, mode='word'):
     # Select top 'vocab_size' words as vocabularies.
     vocab_list = sorted(
         counter.keys(), key=lambda k: counter[k], reverse=True)[:vocab_size]
+    vocab_list = sorted(vocab_list)
 
     print(f'Found {len(counter)} {mode}s.')
     print(f'Selected {len(vocab_list)} vocabularies.')

@@ -55,10 +55,10 @@ def logging_args(args):
         logging.basicConfig(
             level=level,
             format='%(asctime)s %(filename)s.%(funcName)s(%(lineno)d) %(message)s',
-            datefmt='%Y-%m-%d %H:%M',
+            datefmt='%m-%d %H:%M',
             handlers=[logging.FileHandler(args.log_file, 'w', 'utf-8')])
     else:
         logging.basicConfig(
             level=level,
             format='%(asctime)s %(filename)s.%(funcName)s(%(lineno)d) %(message)s',
-            datefmt='%Y-%m-%d %H:%M')
+            datefmt='%m-%d %H:%M')

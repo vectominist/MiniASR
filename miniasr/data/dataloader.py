@@ -34,24 +34,9 @@ def audio_collate_fn(data_list, mode='train'):
     waves, wave_len = [], []
     texts, text_len = [], []
     for data in data_list:
-        if data.get('feat', None) is not None:
-            # Data already loaded (usually .npy file)
-            waves.append(data['feat'])
-        if data['file'].split('.')[-1] in ['flac', 'wav']:
-            # Raw waveform
-            waves.append(load_waveform(data['file'], TARGET_SR))
-        elif data['file'].split('.')[-1] == 'pt':
-            # Features from pytorch tensor file
-            waves.append(torch.load(data['file'], map_location='cpu'))
+        # Load raw waveform
+        waves.append(load_waveform(data['file'], TARGET_SR))
         wave_len.append(len(waves[-1]))
-
-        if len(data.get('vad_segs', [])) > 0:
-            # Preserve segments with human voice
-            wave_segs = []
-            for start, end in data['vad_segs']:
-                wave_segs.append(waves[-1][start:end])
-            waves[-1] = torch.cat(wave_segs, dim=0)
-            wave_len[-1] = len(waves[-1])
 
         if mode in ['train', 'dev']:
             texts.append(torch.LongTensor(data['text']))
@@ -60,9 +45,9 @@ def audio_collate_fn(data_list, mode='train'):
             texts.append(data.get('text', ''))
             text_len.append(0)
 
-    if (data_list[0]['file'].split('.')[-1] == 'pt') or \
-            (data_list[0].get('feat', None) is not None):
-        waves = pad_sequence(waves, batch_first=True)
+    # if (data_list[0]['file'].split('.')[-1] == 'pt') or \
+    #         (data_list[0].get('feat', None) is not None):
+    #     waves = pad_sequence(waves, batch_first=True)
     wave_len = torch.LongTensor(wave_len)
 
     if mode in ['train', 'dev']:
@@ -103,22 +88,23 @@ def create_dataloader(args):
     tokenizer = load_text_encoder(args.data.text.mode, args.data.text.vocab)
 
     # Create datasets & dataloaders
-    logging.info('Generating datasets and dataloaders.')
+    logging.info(f'Generating datasets and dataloaders. (mode = {args.mode})')
     if args.mode == 'train':
         # Training mode: train + dev sets
-        tr_set = ASRDataset(args.data.train_paths, tokenizer,
-                            'train', args.model.name != 'unsup_asr')
+        tr_set = ASRDataset(args.data.train_paths, tokenizer, 'train')
         dv_set = ASRDataset(args.data.dev_paths, tokenizer, 'dev')
 
         tr_loader = DataLoader(
             tr_set, batch_size=args.hparam.train_batch_size,
             shuffle=True, num_workers=args.hparam.njobs,
-            collate_fn=audio_collate_fn, pin_memory=args.hparam.pin_memory,
+            collate_fn=audio_collate_fn,
+            pin_memory=args.hparam.pin_memory,
             drop_last=True)
         dv_loader = DataLoader(
             dv_set, batch_size=args.hparam.val_batch_size,
             shuffle=False, num_workers=args.hparam.njobs,
-            collate_fn=audio_collate_fn, pin_memory=args.hparam.pin_memory,
+            collate_fn=audio_collate_fn,
+            pin_memory=args.hparam.pin_memory,
             drop_last=False)
 
         return tr_loader, dv_loader, tokenizer
