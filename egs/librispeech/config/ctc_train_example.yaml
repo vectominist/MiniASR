@@ -1,10 +1,11 @@
 mode: train
 data:
-  train_paths: ['data/libri_train/data_list_sorted.json']
+  train_paths: ['data/libri_train_1h/data_list_sorted.json',
+                'data/libri_train_9h/data_list_sorted.json']
   dev_paths: ['data/libri_dev/data_list_sorted.json']
   text:
     mode: character
-    vocab: data/libri_train/vocab_char.txt
+    vocab: data/libri_train_1h/vocab_char.txt
 
 model:
   name: ctc_asr
@@ -42,12 +43,16 @@ checkpoint_callbacks:
   monitor: val_wer
   mode: min
   save_top_k: 5  # -1: all ckpts will be saved
+  every_n_train_steps: 500
 
 trainer:
-  max_epochs: 50
-  max_steps: 50000
+  max_epochs: 100
+  max_steps: 100000
+  check_val_every_n_epoch: 10
   gpus: 1
   precision: 16
   logger: true
-  default_root_dir: model/ctc_libri-1h_char
+  log_every_n_steps: 5
+  flush_logs_every_n_steps: 5
+  default_root_dir: model/ctc_libri-10h_char
   deterministic: true

@@ -47,7 +47,7 @@ class ASRDataset(Dataset):
 
         logging.info(
             f'{len(self.data_list)} audio files found '
-            f'(mode = {self.mode}')
+            f'(mode = {self.mode})')
 
     def __getitem__(self, index):
         ''' Returns a single sample. '''
