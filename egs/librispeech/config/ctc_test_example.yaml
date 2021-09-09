@@ -11,8 +11,8 @@ decode:
   type: greedy
 
 hparam:
-  val_batch_size: 8
-  njobs: 16
+  val_batch_size: 16
+  njobs: 4
   pin_memory: true
 
 trainer:

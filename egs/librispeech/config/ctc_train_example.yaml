@@ -43,12 +43,11 @@ checkpoint_callbacks:
   monitor: val_wer
   mode: min
   save_top_k: 5  # -1: all ckpts will be saved
-  every_n_train_steps: 500
 
 trainer:
   max_epochs: 100
   max_steps: 100000
-  check_val_every_n_epoch: 10
+  check_val_every_n_epoch: 5
   gpus: 1
   precision: 16
   logger: true
