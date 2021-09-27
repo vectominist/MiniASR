@@ -6,6 +6,7 @@
 
 import torch
 from torch import nn
+from torch.nn import functional as F
 
 
 class FeatureSelection(nn.Module):
@@ -49,10 +50,11 @@ class FeatureSelection(nn.Module):
         feat = emb_dict[self.selection]
 
         if self.weight_layer is None:
-            return feat[0]
+            return F.layer_norm(feat[0], feat[0].shape[-1])
         else:
             # Perform weighted sum
             feat = torch.stack(feat, dim=0)  # n_features x Batch x Time x Dim
+            feat = F.layer_norm(feat, feat.shape[-1])
             weights = torch.softmax(self.weight_layer, dim=0)
             feat = (feat * weights.reshape(self.n_features, 1, 1, 1)).sum(0)
             return feat

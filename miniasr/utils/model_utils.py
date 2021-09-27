@@ -4,6 +4,8 @@
     Synopsis  [ Some utilities for models. ]
 '''
 
+import torch
+
 
 def freeze_model(model):
     ''' Freeze all parameters in a model. '''
@@ -20,7 +22,6 @@ def unfreeze_model(model):
 def check_extractor_attributes(model, device='cuda:0'):
     ''' Checks extractor's attributes. '''
 
-    import torch
     print(f'Testing {model} on {device}')
 
     extractor = torch.hub.load('s3prl/s3prl', model).to(device)
@@ -38,6 +39,33 @@ def check_extractor_attributes(model, device='cuda:0'):
 
     print('Used {:.2f} MB of GPU VRAM with 8 audio samples each having 10 secs.'
           .format(info.used / 1024 / 1024))
+
+
+def load_from_checkpoint(checkpoint, device='cpu'):
+    ''' Loads model from checkpoint. '''
+
+    if isinstance(checkpoint, str):
+        # Load from path
+        ckpt = torch.load(checkpoint, map_location=device)
+        args = ckpt['args']
+        tokenizer = ckpt['tokenizer']
+        state_dict = ckpt['state_dict']
+    else:
+        # Load from a loaded checkpoint
+        args = checkpoint['args']
+        tokenizer = checkpoint['tokenizer']
+        state_dict = checkpoint['state_dict']
+
+    if args.model.name == 'ctc_asr':
+        from miniasr.model.ctc_asr import ASR
+    else:
+        raise NotImplementedError(
+            '{} ASR type is not supported.'.format(args.model.name))
+
+    model = ASR(tokenizer, args).to(device)
+    model.load_state_dict(state_dict)
+
+    return model, args, tokenizer
 
 
 if __name__ == '__main__':

@@ -140,7 +140,7 @@ class BaseASR(pl.LightningModule):
 
         return loss
 
-    def decode(self, logits, enc_len):
+    def decode(self, logits, enc_len, decode_type=None):
         ''' Decodes output logits. '''
         raise NotImplementedError
 
@@ -297,3 +297,26 @@ class BaseASR(pl.LightningModule):
             fp.write('\n'.join(all_refs))
         with open(join(self.args.test_res, 'hyps.txt'), 'w') as fp:
             fp.write('\n'.join(all_hyps))
+
+    def recognize(self, wave):
+        '''
+            Greedy decoding given a list of waveforms.
+            Input:
+                wave [list]: waveforms
+            Output:
+                hyps [list]: list of transcriptions
+        '''
+
+        with torch.no_grad():
+            wave_len = torch.LongTensor([len(w) for w in wave]).to(wave.device)
+            logits, enc_len, _, _ = self(wave, wave_len)
+            hyps = self.decode(logits, enc_len, 'greedy')
+            return hyps
+
+    def on_save_checkpoint(self, checkpoint):
+        '''
+            Additional information to be saved to checkpoint.
+        '''
+
+        checkpoint['args'] = self.args
+        checkpoint['tokenizer'] = self.tokenizer

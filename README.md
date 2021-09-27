@@ -9,14 +9,14 @@ A mini, simple, and fast end-to-end automatic speech recognition toolkit.
 ## Intro
 
 ### Why Mini?
-* **Minimal Code** 📄  
+<!-- * **Minimal Code** 📄  
   Less than 1600 lines of code.
 * **Minimal Modification** ✏️  
-  Easy to customize.
+  Easy to customize. -->
 * **Minimal Training** ⏱  
-  Self-supervised pre-trained model + minimal fine-tuning.
+  Self-supervised pre-trained models + minimal fine-tuning.
 * **Simple and Flexible** ⚙️  
-  Easy for beginners to understand and customizing.
+  Easy to understand and customize.
 * **Colab Compatible** 🧪  
   Train your model directly on Google Colab.
 <!-- * **Fast Deployment** 🚀
@@ -56,6 +56,22 @@ pip install -e ./
 ```
 If you wish to decode with LM and beam search, [flashlight](https://github.com/flashlight/flashlight) should also be installed.
 
+
+### Pre-trained ASR
+Download checkpoint file from TODO.
+```python
+from miniasr.utils import load_from_checkpoint
+from miniasr.data.audio import load_waveform
+
+# Option 1: Loading from a checkpoint
+model, args, tokenizer = load_from_checkpoint('path/to/ckpt', 'cuda')
+# Option 2: Loading from torch.hub
+model = torch.hub.load('vectominist/MiniASR', 'ctc_eng').to('cuda')
+
+# Load waveforms and recognize!
+waves = [load_waveform('path/to/waveform').to('cuda')]
+hyps = model.recognize(waves)
+```
 
 ### Preprocessing
 * For already implemented corpora, please see `egs/`.
@@ -144,4 +160,11 @@ TBA
 
 ## Citation
 
-TBA
+```
+@misc{chang2021miniasr,
+  title={{MiniASR}},
+  author={Chang, Heng-Jui},
+  year={2021},
+  url={https://github.com/vectominist/MiniASR}
+}
+```

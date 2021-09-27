@@ -40,7 +40,7 @@ class ASR(BaseASR):
             self.enable_beam_decode = True
             import math
             from flashlight.lib.text.dictionary import (
-                Dictionary, load_words, create_word_dict, pack_replabels)
+                Dictionary, load_words, create_word_dict)
             from flashlight.lib.text.decoder import (
                 CriterionType, LexiconDecoderOptions, LexiconDecoder, KenLM, Trie, SmearingMode)
 
@@ -52,8 +52,6 @@ class ASR(BaseASR):
 
             sil_idx = token_dict.get_index("|")
             unk_idx = word_dict.get_index("<unk>")
-
-            # assert sil_idx == 0, sil_idx
 
             trie = Trie(token_dict.index_size(), sil_idx)
             start_state = lm.start(False)
@@ -129,9 +127,9 @@ class ASR(BaseASR):
 
         return ctc_loss
 
-    def decode(self, logits, enc_len):
+    def decode(self, logits, enc_len, decode_type=None):
         ''' Decoding. '''
-        if self.enable_beam_decode:
+        if self.enable_beam_decode and decode_type != 'greedy':
             return self.beam_decode(logits, enc_len)
         return self.greedy_decode(logits, enc_len)
 

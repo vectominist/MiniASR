@@ -6,7 +6,6 @@
 
 import torch
 from torch import nn
-# from torch.nn.utils.rnn import pack_padded_sequence, pad_packed_sequence
 
 
 class RNNEncoder(nn.Module):
@@ -50,11 +49,6 @@ class RNNEncoder(nn.Module):
         if not self.training:
             self.rnn.flatten_parameters()
 
-        # feat = pack_padded_sequence(
-        #     feat, feat_len.cpu(), batch_first=True, enforce_sorted=False)
-
         out, _ = self.rnn(feat)
-
-        # out, _ = pad_packed_sequence(out, batch_first=True)
 
         return out, feat_len

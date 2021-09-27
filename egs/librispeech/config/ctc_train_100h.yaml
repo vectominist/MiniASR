@@ -50,5 +50,5 @@ trainer:
   precision: 16
   logger: true
   default_root_dir: model/ctc_base_hubert_LS100_char
-  resume_from_checkpoint: none
+  # resume_from_checkpoint: none
   deterministic: true
