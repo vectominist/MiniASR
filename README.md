@@ -46,26 +46,24 @@ A mini, simple, and fast end-to-end automatic speech recognition toolkit.
 ### Requirements
 * Python 3.6+
 * Install sox on your OS
-* Install required packages:
+* Install via pip:
 ```bash
-pip install -r requirements.txt
-
-git clone https://github.com/pytorch/fairseq.git
-cd fairseq/
 pip install -e ./
 ```
-If you wish to decode with LM and beam search, [flashlight](https://github.com/flashlight/flashlight) should also be installed.
+Additional libraries:
+* [fairseq](https://github.com/pytorch/fairseq): to use pre-trained feature extractors like wav2vec 2.0 or HuBERT.
+* [flashlight](https://github.com/flashlight/flashlight): to decode with LM and beam search.
 
 
 ### Pre-trained ASR
-Download checkpoint file from TODO.
+You can directly use pre-trained ASR models for any applications. (under construction 🚧)
 ```python
 from miniasr.utils import load_from_checkpoint
 from miniasr.data.audio import load_waveform
 
 # Option 1: Loading from a checkpoint
 model, args, tokenizer = load_from_checkpoint('path/to/ckpt', 'cuda')
-# Option 2: Loading from torch.hub
+# Option 2: Loading from torch.hub (TODO)
 model = torch.hub.load('vectominist/MiniASR', 'ctc_eng').to('cuda')
 
 # Load waveforms and recognize!
@@ -133,11 +131,12 @@ See `egs/`.
 
 ## TODO List
 * Google Colab support
+* `torch.hub` support
+* Releasing pre-trained ASR models
 
+<!-- ## Acknowledgements
 
-## Acknowledgements
-
-TBA
+TBA -->
 
 ## Reference Papers
 

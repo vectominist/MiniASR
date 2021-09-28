@@ -308,7 +308,8 @@ class BaseASR(pl.LightningModule):
         '''
 
         with torch.no_grad():
-            wave_len = torch.LongTensor([len(w) for w in wave]).to(wave.device)
+            wave_len = torch.LongTensor(
+                [len(w) for w in wave]).to(wave[0].device)
             logits, enc_len, _, _ = self(wave, wave_len)
             hyps = self.decode(logits, enc_len, 'greedy')
             return hyps

@@ -5,22 +5,6 @@ here = pathlib.Path(__file__).parent.resolve()
 
 long_description = (here / 'README.md').read_text(encoding='utf-8')
 
-requirements = [
-    "torch>=1.7.0",
-    "torchaudio>=0.7.0",
-    "torchvision>=0.8.0",
-    "torchtext>=0.8.0",
-    "tqdm",
-    "numpy>=1.19.5",
-    "sentencepiece>=0.1.96",
-    "pytorch-lightning>=1.3.8",
-    "easydict",
-    "joblib>=0.12.4",
-    "librosa>=0.7.2",
-    "numba==0.48",
-    "edit_distance"
-]
-
 setup(
     name='miniasr',
 
@@ -62,7 +46,28 @@ setup(
 
     python_requires='>=3.6, <4',
 
-    install_requires=requirements,
+    install_requires=[
+        "tqdm",
+        "numpy>=1.19.5",
+        "sentencepiece>=0.1.96",
+        "pytorch-lightning>=1.3.8",
+        "easydict",
+        "joblib>=0.12.4",
+        "librosa>=0.7.2",
+        "numba==0.48",
+        "edit_distance",
+        "torch>=1.7.0",
+        "torchaudio>=0.7.0",
+        "torchvision>=0.8.0",
+        "torchtext>=0.8.0",
+    ],
+
+    entry_points={
+        "console_scripts": [
+            "minasr-asr = run_asr:main",
+            "miniasr-preprocess = run_preprocess:main",
+        ],
+    },
 
     project_urls={
         'Bug Reports': 'https://github.com/vectominist/MiniASR/issues',
