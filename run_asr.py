@@ -16,7 +16,7 @@ import torch
 import torchaudio
 
 from miniasr.bin.asr_trainer import create_asr_trainer, create_asr_trainer_test
-from miniasr.utils import set_random_seed, base_args, logging_args
+from miniasr.utils import set_random_seed, base_args, logging_args, override
 
 
 def parse_arguments():
@@ -45,15 +45,18 @@ def parse_arguments():
     config = yaml.load(open(args.config, 'r'), Loader=yaml.FullLoader)
 
     # Load original config file for testing
-    if args.test:
-        config_model = yaml.load(
-            open(config['model'], 'r'), Loader=yaml.FullLoader)
-        config['model'] = config_model['model']
+    # if args.test:
+    #     config_model = yaml.load(
+    #         open(config['model'], 'r'), Loader=yaml.FullLoader)
+    #     config['model'] = config_model['model']
 
     args = edict({**config, **vars(args)})
 
     if args.cpu:
         args.trainer.gpus = 0
+
+    if args.override != '':
+        override(args.override, args)
 
     return args
 
@@ -76,9 +79,9 @@ def main():
     if args.test:
         assert args.ckpt != 'none'
         # Path to save testing results.
-        args.test_res = join(args.trainer.default_root_dir, args.test_name)
-        os.makedirs(args.test_res, exist_ok=True)
-        args.trainer.default_root_dir = args.test_res
+        args.test_res = '/'.join(args.ckpt.split('/')[:-1])
+    elif args.ckpt != 'none':
+        args.trainer.resume_from_checkpoint = args.ckpt
 
     # Save a copy of args
     args_path = join(args.trainer.default_root_dir,

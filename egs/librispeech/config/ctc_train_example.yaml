@@ -15,8 +15,8 @@ model:
     feature: hidden_states
   encoder:
     hid_dim: 256
-    n_layers: 2
-    module: LSTM
+    n_layers: 3
+    module: GRU
     bidirectional: true
     dropout: 0.2
   optim:
@@ -29,11 +29,11 @@ model:
     time_mask_range: [0, 40]
     time_mask_num: 2
     time_mask_max: 1.0
-    time_warp_w: 40
+    time_warp_w: 80
 
 hparam:
-  train_batch_size: 16
-  val_batch_size: 16
+  train_batch_size: 32
+  val_batch_size: 32
   accum_grad: 1
   grad_clip: 5
   njobs: 4
@@ -45,7 +45,7 @@ checkpoint_callbacks:
   save_top_k: 5  # -1: all ckpts will be saved
 
 trainer:
-  max_epochs: 100
+  max_epochs: 500
   max_steps: 100000
   check_val_every_n_epoch: 5
   gpus: 1

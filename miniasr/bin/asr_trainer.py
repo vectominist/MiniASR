@@ -8,6 +8,7 @@ import logging
 import pytorch_lightning as pl
 
 from miniasr.data.dataloader import create_dataloader
+from miniasr.utils import load_from_checkpoint
 
 
 def create_asr_trainer(args, device):
@@ -50,20 +51,14 @@ def create_asr_trainer_test(args, device):
         Creates ASR model and trainer. (for testing)
     '''
 
-    # Load data & tokenizer
-    _, dv_loader, tokenizer = create_dataloader(args)
-
-    # Create ASR model
-    logging.info(f'Creating ASR model (type = {args.model.name}).')
-    if args.model.name == 'ctc_asr':
-        from miniasr.model.ctc_asr import ASR
-    else:
-        raise NotImplementedError(
-            '{} ASR type is not supported yet.'.format(args.model.name))
-
     # Load model from checkpoint
-    model = ASR.load_from_checkpoint(
-        args.ckpt, tokenizer=tokenizer, args=args).to(device)
+    model, args_ckpt, tokenizer = \
+        load_from_checkpoint(args.ckpt, device=device)
+    args.model = args_ckpt.model
+    model.args = args
+
+    # Load data & tokenizer
+    _, dv_loader, _ = create_dataloader(args, tokenizer)
 
     # Create pytorch-lightning trainer
     trainer = pl.Trainer(**args.trainer)

@@ -45,9 +45,6 @@ def audio_collate_fn(data_list, mode='train'):
             texts.append(data.get('text', ''))
             text_len.append(0)
 
-    # if (data_list[0]['file'].split('.')[-1] == 'pt') or \
-    #         (data_list[0].get('feat', None) is not None):
-    #     waves = pad_sequence(waves, batch_first=True)
     wave_len = torch.LongTensor(wave_len)
 
     if mode in ['train', 'dev']:
@@ -80,12 +77,15 @@ def text_collate_fn(data_list):
     return {'text': texts, 'text_len': text_len}
 
 
-def create_dataloader(args):
+def create_dataloader(args, tokenizer=None):
     ''' Creates datasets and dataloaders '''
 
-    # Create text tokenizer
-    logging.info(f'Creating text tokenizer of {args.data.text.mode} level.')
-    tokenizer = load_text_encoder(args.data.text.mode, args.data.text.vocab)
+    if tokenizer is not None:
+        # Create text tokenizer
+        logging.info(
+            f'Creating text tokenizer of {args.data.text.mode} level.')
+        tokenizer = load_text_encoder(
+            args.data.text.mode, args.data.text.vocab)
 
     # Create datasets & dataloaders
     logging.info(f'Generating datasets and dataloaders. (mode = {args.mode})')

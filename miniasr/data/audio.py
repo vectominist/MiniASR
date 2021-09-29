@@ -20,8 +20,12 @@ def load_waveform(file, target_sample_rate=16_000):
             waveform [torch.Tensor]: raw waveform tensor
     '''
 
-    waveform, sample_rate = torchaudio.load(
-        file, normalize=True, channels_first=True)
+    try:
+        waveform, sample_rate = torchaudio.load(
+            file, normalize=True, channels_first=True)
+    except:
+        waveform, sample_rate = torchaudio.load(
+            file, normalization=True, channels_first=True)
     # waveform: Channel x Time
     waveform = waveform.mean(0)  # Averaged by channels
 

@@ -5,8 +5,6 @@ data:
     mode: character
     vocab: data/libri_train_1h/vocab_char.txt
 
-model: egs/librispeech/config/ctc_train_example.yaml
-
 decode:
   type: greedy
 
