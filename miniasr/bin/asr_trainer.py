@@ -16,18 +16,32 @@ def create_asr_trainer(args, device):
         Creates ASR model and trainer. (for training)
     '''
 
-    # Load data & tokenizer
-    tr_loader, dv_loader, tokenizer = create_dataloader(args)
+    if args.ckpt == 'none':
+        # Load data & tokenizer
+        tr_loader, dv_loader, tokenizer = create_dataloader(args)
 
-    # Create ASR model
-    logging.info(f'Creating ASR model (type = {args.model.name}).')
-    if args.model.name == 'ctc_asr':
-        from miniasr.model.ctc_asr import ASR
+        # Create ASR model
+        logging.info(f'Creating ASR model (type = {args.model.name}).')
+        if args.model.name == 'ctc_asr':
+            from miniasr.model.ctc_asr import ASR
+        else:
+            raise NotImplementedError(
+                '{} ASR type is not supported.'.format(args.model.name))
+
+        model = ASR(tokenizer, args).to(device)
     else:
-        raise NotImplementedError(
-            '{} ASR type is not supported.'.format(args.model.name))
+        # Load from args.ckpt (resume training)
+        model, args_ckpt, tokenizer = \
+            load_from_checkpoint(args.ckpt, device=device, pl_ckpt=True)
+        args.model = args_ckpt.model
+        if args.config == 'none':
+            args.mode = args_ckpt.mode
+            args.hparam = args_ckpt.hparam
+            args.checkpoint_callbacks = args_ckpt.checkpoint_callbacks
+            args.trainer = args_ckpt.trainer
 
-    model = ASR(tokenizer, args).to(device)
+        # Load data & tokenizer
+        tr_loader, dv_loader, _ = create_dataloader(args)
 
     # Create checkpoint callbacks
     checkpoint_callback = pl.callbacks.ModelCheckpoint(
@@ -43,7 +57,7 @@ def create_asr_trainer(args, device):
         **args.trainer
     )
 
-    return tr_loader, dv_loader, tokenizer, model, trainer
+    return args, tr_loader, dv_loader, tokenizer, model, trainer
 
 
 def create_asr_trainer_test(args, device):
@@ -63,4 +77,4 @@ def create_asr_trainer_test(args, device):
     # Create pytorch-lightning trainer
     trainer = pl.Trainer(**args.trainer)
 
-    return None, dv_loader, tokenizer, model, trainer
+    return args, None, dv_loader, tokenizer, model, trainer

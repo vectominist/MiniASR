@@ -80,7 +80,7 @@ def text_collate_fn(data_list):
 def create_dataloader(args, tokenizer=None):
     ''' Creates datasets and dataloaders '''
 
-    if tokenizer is not None:
+    if tokenizer is None:
         # Create text tokenizer
         logging.info(
             f'Creating text tokenizer of {args.data.text.mode} level.')

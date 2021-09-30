@@ -4,6 +4,8 @@ A mini, simple, and fast end-to-end automatic speech recognition toolkit.
 
 <p align="center">
   <img src="logo.png" width="500">
+  <br/>
+  <img alt="GitHub" src="https://img.shields.io/github/license/vectominist/MiniASR">
 </p>
 
 ## Intro
@@ -75,7 +77,7 @@ hyps = model.recognize(waves)
 * For already implemented corpora, please see `egs/`.
 * To customize your own dataset, please see `miniasr/preprocess`.
 
-<details><summary>run_preprocess.py</summary><p>
+<details><summary>miniasr-preprocess</summary><p>
 
 Options:
 ```
@@ -101,7 +103,7 @@ Options:
 ### Training & Testing
 See examples in `egs/`.
 
-<details><summary>run_asr.py</summary><p>
+<details><summary>miniasr-asr</summary><p>
 
 Options:
 ```

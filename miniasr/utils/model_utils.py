@@ -41,7 +41,7 @@ def check_extractor_attributes(model, device='cuda:0'):
           .format(info.used / 1024 / 1024))
 
 
-def load_from_checkpoint(checkpoint, device='cpu'):
+def load_from_checkpoint(checkpoint, device='cpu', pl_ckpt=False):
     ''' Loads model from checkpoint. '''
 
     if isinstance(checkpoint, str):
@@ -62,8 +62,13 @@ def load_from_checkpoint(checkpoint, device='cpu'):
         raise NotImplementedError(
             '{} ASR type is not supported.'.format(args.model.name))
 
-    model = ASR(tokenizer, args).to(device)
-    model.load_state_dict(state_dict)
+    if not pl_ckpt:
+        model = ASR(tokenizer, args).to(device)
+        model.load_state_dict(state_dict)
+    else:
+        assert isinstance(checkpoint, str)
+        del ckpt, state_dict
+        model = ASR.load_from_checkpoint(checkpoint).to(device)
 
     return model, args, tokenizer
 

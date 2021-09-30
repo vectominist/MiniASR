@@ -32,7 +32,7 @@ model:
 
 hparam:
   train_batch_size: 16
-  val_batch_size: 1
+  val_batch_size: 16
   accum_grad: 2
   grad_clip: 5
   njobs: 16
@@ -50,5 +50,4 @@ trainer:
   precision: 16
   logger: true
   default_root_dir: model/ctc_base_hubert_LS100_char
-  # resume_from_checkpoint: none
   deterministic: true
