@@ -29,6 +29,20 @@ def create_asr_trainer(args, device):
                 '{} ASR type is not supported.'.format(args.model.name))
 
         model = ASR(tokenizer, args).to(device)
+
+        # Create checkpoint callbacks
+        checkpoint_callback = pl.callbacks.ModelCheckpoint(
+            dirpath=args.trainer.default_root_dir,
+            **args.checkpoint_callbacks
+        )
+
+        # Create pytorch-lightning trainer
+        trainer = pl.Trainer(
+            accumulate_grad_batches=args.hparam.accum_grad,
+            gradient_clip_val=args.hparam.grad_clip,
+            callbacks=[checkpoint_callback],
+            **args.trainer
+        )
     else:
         # Load from args.ckpt (resume training)
         model, args_ckpt, tokenizer = \
@@ -36,6 +50,7 @@ def create_asr_trainer(args, device):
         args.model = args_ckpt.model
         if args.config == 'none':
             args.mode = args_ckpt.mode
+            args.data = args_ckpt.data
             args.hparam = args_ckpt.hparam
             args.checkpoint_callbacks = args_ckpt.checkpoint_callbacks
             args.trainer = args_ckpt.trainer
@@ -43,19 +58,19 @@ def create_asr_trainer(args, device):
         # Load data & tokenizer
         tr_loader, dv_loader, _ = create_dataloader(args)
 
-    # Create checkpoint callbacks
-    checkpoint_callback = pl.callbacks.ModelCheckpoint(
-        dirpath=args.trainer.default_root_dir,
-        **args.checkpoint_callbacks
-    )
+        # Create checkpoint callbacks
+        checkpoint_callback = pl.callbacks.ModelCheckpoint(
+            dirpath=args.trainer.default_root_dir,
+            **args.checkpoint_callbacks
+        )
 
-    # Create pytorch-lightning trainer
-    trainer = pl.Trainer(
-        accumulate_grad_batches=args.hparam.accum_grad,
-        gradient_clip_val=args.hparam.grad_clip,
-        callbacks=[checkpoint_callback],
-        **args.trainer
-    )
+        # Create pytorch-lightning trainer
+        trainer = pl.Trainer(
+            resume_from_checkpoint=args.ckpt,
+            accumulate_grad_batches=args.hparam.accum_grad,
+            gradient_clip_val=args.hparam.grad_clip,
+            callbacks=[checkpoint_callback],
+            **args.trainer)
 
     return args, tr_loader, dv_loader, tokenizer, model, trainer
 

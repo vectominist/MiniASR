@@ -77,7 +77,6 @@ def main():
     set_random_seed(args.seed)
 
     # Create base directory
-    os.makedirs(args.trainer.default_root_dir, exist_ok=True)
     if args.test:
         assert args.ckpt != 'none'
         # Path to save testing results.
@@ -85,6 +84,7 @@ def main():
 
     # Save a copy of args
     if args.config != 'none':
+        os.makedirs(args.trainer.default_root_dir, exist_ok=True)
         args_path = join(args.trainer.default_root_dir,
                          f'model_{args.mode}_config.yaml')
         with open(args_path, 'w') as fp:

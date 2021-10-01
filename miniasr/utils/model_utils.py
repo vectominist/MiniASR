@@ -68,7 +68,10 @@ def load_from_checkpoint(checkpoint, device='cpu', pl_ckpt=False):
     else:
         assert isinstance(checkpoint, str)
         del ckpt, state_dict
-        model = ASR.load_from_checkpoint(checkpoint).to(device)
+        model = ASR.load_from_checkpoint(
+            checkpoint_path=checkpoint,
+            tokenizer=tokenizer,
+            args=args).to(device)
 
     return model, args, tokenizer
 
