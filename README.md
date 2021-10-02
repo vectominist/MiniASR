@@ -121,7 +121,7 @@ Options:
 </p></details>
 
 
-## Benchmark Corpora Support
+<!-- ## Benchmark Corpora Support
 See `egs/`.
 
 ### LibriSpeech
@@ -129,7 +129,7 @@ See `egs/`.
 | ---- | -------------- | ----- | -------- | ------ | ---------- | ---------- |
 | 100h | fbank          | BLSTM | 40M      | Greedy |            |            |
 | 100h | hubert (fixed) | BLSTM | 95 + 40M | Greedy | 6.4        | 15.1       |
-| 100h | hubert (fixed) | BLSTM | 95 + 40M | LM     | 4.1        | 9.9        |
+| 100h | hubert (fixed) | BLSTM | 95 + 40M | LM     | 4.1        | 9.9        | -->
 
 ## TODO List
 * Google Colab support

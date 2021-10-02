@@ -11,6 +11,55 @@ bash train.sh
 bash test.sh
 ```
 
+## hubert_base + BLSTM + CTC + 4-gram LM (960h)
+
+* Model
+    * Extractor: hubert_base (95M params, fixed)
+    * Encoder: 2-layer BLSTM 1024 units per direction (40M params)
+* Data
+    * Training: `train-clean-100` + `train-clean-360` + `train-other-500`
+    * Vocab: character
+* Decode
+    * LM: official `4-gram.arpa.gz`
+    * Beam size: 100
+* Config
+    * Train: `config/ctc_train_960h.yaml`
+    * Test: `config/ctc_test_960h.yaml`
+* Computation
+    * FP: 16 bit
+    * GPU: NVIDIA Tesla V100 32GB * 1
+    * Time: 48h
+
+
+**With LM**
+
+```
+| #Snt     #Tok     | Sub    Del    Ins    Err    SErr   |
+dev-clean
+| 2703     54402    | 2.2    0.2    0.3    2.8    33.2   |
+test-clean
+| 2620     52576    | 2.4    0.2    0.5    3.1    34.5   |
+dev-other
+| 2864     50948    | 6.4    0.6    0.9    7.8    53.2   |
+test-other
+| 2939     52343    | 6.2    0.6    0.9    7.7    57.5   |
+```
+
+**Without LM**
+
+```
+| #Snt     #Tok     | Sub    Del    Ins    Err    SErr   |
+dev-clean
+| 2703     54402    | 3.7    0.3    0.3    4.3    45.8   |
+test-clean
+| 2620     52576    | 3.8    0.3    0.4    4.5    46.6   |
+dev-other
+| 2864     50948    | 9.9    0.9    0.7    11.6   68.3   |
+test-other
+| 2939     52343    | 9.8    0.9    0.8    11.5   71.2   |
+```
+
+
 ## hubert_base + BLSTM + CTC + 4-gram LM (100h)
 
 * Model

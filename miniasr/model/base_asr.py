@@ -259,7 +259,7 @@ class BaseASR(pl.LightningModule):
                 for key, val in res.items():
                     word_res[key] += val
 
-                if word_res['distance'] > 0:
+                if res['distance'] > 0:
                     sent_err += 1
 
         # Compute CER and WER and save to log

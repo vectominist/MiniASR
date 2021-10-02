@@ -7,6 +7,7 @@
 '''
 
 import abc
+import re
 
 
 class _BaseTextEncoder(abc.ABC):
@@ -73,7 +74,8 @@ class CharacterTextEncoder(_BaseTextEncoder):
                 continue
             v = self.idx_to_vocab(idx)
             vocabs.append(v)
-        return ''.join(vocabs)
+        out = ''.join(vocabs)
+        return re.sub(' +', ' ', out)
 
     @classmethod
     def load_from_file(cls, vocab_file):

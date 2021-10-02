@@ -36,58 +36,64 @@ class ASR(BaseASR):
 
         # Beam decoding with Flashlight
         self.enable_beam_decode = False
-        if self.args.mode in ['dev', 'test'] and self.args.decode.type == 'beam':
+        if self.args.mode in {'dev', 'test'} and self.args.decode.type == 'beam':
             self.enable_beam_decode = True
-            import math
-            from flashlight.lib.text.dictionary import (
-                Dictionary, load_words, create_word_dict)
-            from flashlight.lib.text.decoder import (
-                CriterionType, LexiconDecoderOptions, LexiconDecoder, KenLM, Trie, SmearingMode)
+            self.setup_flashlight()
 
-            token_dict = Dictionary(self.args.decode.token)
-            lexicon = load_words(self.args.decode.lexicon)
-            word_dict = create_word_dict(lexicon)
+    def setup_flashlight(self):
+        '''
+            Setup flashlight for beam decoding.
+        '''
+        import math
+        from flashlight.lib.text.dictionary import (
+            Dictionary, load_words, create_word_dict)
+        from flashlight.lib.text.decoder import (
+            CriterionType, LexiconDecoderOptions, LexiconDecoder, KenLM, Trie, SmearingMode)
 
-            lm = KenLM(self.args.decode.lm, word_dict)
+        token_dict = Dictionary(self.args.decode.token)
+        lexicon = load_words(self.args.decode.lexicon)
+        word_dict = create_word_dict(lexicon)
 
-            sil_idx = token_dict.get_index("|")
-            unk_idx = word_dict.get_index("<unk>")
+        lm = KenLM(self.args.decode.lm, word_dict)
 
-            trie = Trie(token_dict.index_size(), sil_idx)
-            start_state = lm.start(False)
+        sil_idx = token_dict.get_index("|")
+        unk_idx = word_dict.get_index("<unk>")
 
-            for word, spellings in lexicon.items():
-                usr_idx = word_dict.get_index(word)
-                _, score = lm.score(start_state, usr_idx)
-                for spelling in spellings:
-                    # convert spelling string into vector of indices
-                    spelling_idxs = [token_dict.get_index(
-                        token) for token in spelling]
-                    trie.insert(spelling_idxs, usr_idx, score)
-            trie.smear(SmearingMode.MAX)
+        trie = Trie(token_dict.index_size(), sil_idx)
+        start_state = lm.start(False)
 
-            options = LexiconDecoderOptions(
-                self.args.decode.beam_size,
-                self.args.decode.token_beam_size,
-                self.args.decode.beam_threshold,
-                self.args.decode.lm_weight,
-                self.args.decode.word_score,
-                -math.inf,
-                self.args.decode.sil_score,
-                self.args.decode.log_add,
-                CriterionType.CTC
-            )
+        for word, spellings in lexicon.items():
+            usr_idx = word_dict.get_index(word)
+            _, score = lm.score(start_state, usr_idx)
+            for spelling in spellings:
+                # convert spelling string into vector of indices
+                spelling_idxs = [token_dict.get_index(
+                    token) for token in spelling]
+                trie.insert(spelling_idxs, usr_idx, score)
+        trie.smear(SmearingMode.MAX)
 
-            blank_idx = token_dict.get_index("#")  # for CTC
-            is_token_lm = False  # we use word-level LM
-            self.flashlight_decoder = LexiconDecoder(
-                options, trie, lm, sil_idx, blank_idx, unk_idx, [], is_token_lm)
-            self.token_dict = token_dict
+        options = LexiconDecoderOptions(
+            self.args.decode.beam_size,
+            self.args.decode.token_beam_size,
+            self.args.decode.beam_threshold,
+            self.args.decode.lm_weight,
+            self.args.decode.word_score,
+            -math.inf,
+            self.args.decode.sil_score,
+            self.args.decode.log_add,
+            CriterionType.CTC
+        )
 
-            logging.info(
-                f'Beam decoding with beam size {self.args.decode.beam_size}, '
-                f'LM weight {self.args.decode.lm_weight}, '
-                f'Word score {self.args.decode.word_score}')
+        blank_idx = token_dict.get_index("#")  # for CTC
+        is_token_lm = False  # we use word-level LM
+        self.flashlight_decoder = LexiconDecoder(
+            options, trie, lm, sil_idx, blank_idx, unk_idx, [], is_token_lm)
+        self.token_dict = token_dict
+
+        logging.info(
+            f'Beam decoding with beam size {self.args.decode.beam_size}, '
+            f'LM weight {self.args.decode.lm_weight}, '
+            f'Word score {self.args.decode.word_score}')
 
     def forward(self, wave, wave_len):
         '''

@@ -5,6 +5,7 @@
 '''
 
 import torch
+from easydict import EasyDict as edict
 
 
 def freeze_model(model):
@@ -41,20 +42,27 @@ def check_extractor_attributes(model, device='cuda:0'):
           .format(info.used / 1024 / 1024))
 
 
-def load_from_checkpoint(checkpoint, device='cpu', pl_ckpt=False):
+def load_from_checkpoint(
+        checkpoint, device='cpu', pl_ckpt=False,
+        decode_args=None, mode=None):
     ''' Loads model from checkpoint. '''
 
     if isinstance(checkpoint, str):
         # Load from path
         ckpt = torch.load(checkpoint, map_location=device)
-        args = ckpt['args']
+        args = edict(ckpt['args'])
         tokenizer = ckpt['tokenizer']
         state_dict = ckpt['state_dict']
     else:
         # Load from a loaded checkpoint
-        args = checkpoint['args']
+        args = edict(checkpoint['args'])
         tokenizer = checkpoint['tokenizer']
         state_dict = checkpoint['state_dict']
+
+    if decode_args is not None:
+        args.decode = decode_args
+    if mode is not None:
+        args.mode = mode
 
     if args.model.name == 'ctc_asr':
         from miniasr.model.ctc_asr import ASR

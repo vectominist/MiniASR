@@ -31,22 +31,14 @@ def ctc_eng():
     '''
         Default Englsih CTC model.
     '''
-    return ctc_eng_ls100_hubert_base()
+    return ctc_eng_ls960_hubert_base_char()
 
 
-def ctc_eng_ls100_fbank():
+def ctc_eng_ls960_hubert_base_char():
     '''
         Language: English
-        Data: LibriSpeech 100h
-        Feature: fbank
-    '''
-    return asr_url('todo')
-
-
-def ctc_eng_ls100_hubert_base():
-    '''
-        Language: English
-        Data: LibriSpeech 100h
+        Data: LibriSpeech 960h
         Feature: HuBERT base
+        Vocab: char
     '''
-    return asr_url('todo')
+    return asr_url('https://www.dropbox.com/s/1k3mpngqpinihlo/ctc_ls960_hubert_base_char.ckpt?dl=0')

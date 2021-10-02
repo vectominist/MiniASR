@@ -82,7 +82,10 @@ def create_asr_trainer_test(args, device):
 
     # Load model from checkpoint
     model, args_ckpt, tokenizer = \
-        load_from_checkpoint(args.ckpt, device=device)
+        load_from_checkpoint(
+            args.ckpt, device=device,
+            decode_args=args.decode,
+            mode=args.mode)
     args.model = args_ckpt.model
     model.args = args
 
