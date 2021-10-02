@@ -72,7 +72,7 @@ def load_from_checkpoint(
 
     if not pl_ckpt:
         model = ASR(tokenizer, args).to(device)
-        model.load_state_dict(state_dict)
+        model.load_state_dict(state_dict, strict=False)
     else:
         assert isinstance(checkpoint, str)
         del ckpt, state_dict
