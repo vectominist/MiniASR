@@ -4,6 +4,10 @@
 . ./path.sh || exit 1;
 
 run_asr.py \
-    --config egs/librispeech/config/ctc_test_100h.yaml \
+    --config config/ctc_test_960.yaml \
     --test \
-    --ckpt /work/harry87122/MiniASR/model/ctc_base_hubert_LS100_char/epoch=43-step=39247.ckpt
+    --override " \
+            args.data.dev_paths=['/work/harry87122/dataset/miniasr_data/test-other/data_list_sorted.json'],, \
+            args.decode.type='beam' \
+        " \
+    --ckpt model/ctc_hubert_base_LS960_char/epoch=15-step=140623.ckpt

@@ -6,4 +6,5 @@
 mkdir -p model
 
 run_asr.py \
-    --config config/ctc_train_100h.yaml
+    --config config/ctc_train_960h.yaml
+    # --ckpt 'path/to/ckpt'

@@ -1,0 +1,55 @@
+mode: train
+data:
+  train_paths: ['/work/harry87122/dataset/miniasr_data/1h/data_list_sorted.json',
+                '/work/harry87122/dataset/miniasr_data/9h/data_list_sorted.json']
+  dev_paths: ['/work/harry87122/dataset/miniasr_data/dev-clean/data_list_sorted.json']
+  text:
+    mode: character
+    vocab: /work/harry87122/dataset/miniasr_data/9h/vocab_char.txt
+
+model:
+  name: ctc_asr
+  extractor:
+    name: fbank
+    train: false
+    feature: hidden_states
+  encoder:
+    hid_dim: 256
+    n_layers: 2
+    module: GRU
+    bidirectional: true
+    dropout: 0.2
+  optim:
+    algo: Adam
+    kwargs:
+      lr: 0.0001
+  specaugment:
+    freq_mask_range: [0, 50]
+    freq_mask_num: 2
+    time_mask_range: [0, 40]
+    time_mask_num: 2
+    time_mask_max: 1.0
+    time_warp_w: 80
+
+hparam:
+  train_batch_size: 32
+  val_batch_size: 32
+  accum_grad: 1
+  grad_clip: 5
+  njobs: 16
+  pin_memory: true
+
+checkpoint_callbacks:
+  monitor: val_wer
+  mode: min
+  save_top_k: 2  # -1: all ckpts will be saved
+
+trainer:
+  max_epochs: 500
+  max_steps: 200000
+  check_val_every_n_epoch: 5
+  gpus: 1
+  precision: 16
+  logger: true
+  default_root_dir: model/ctc_base_fbank_10h_char
+  deterministic: true

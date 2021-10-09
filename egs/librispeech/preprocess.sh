@@ -5,11 +5,12 @@
 
 corpus=LibriSpeech
 corpus_dir=/work/harry87122/dataset/LibriSpeech
+# corpus_dir=/work/harry87122/dataset/librispeech_finetuning
 out_dir=/work/harry87122/dataset/miniasr_data
 
 mkdir -p $out_dir
 
-for set in train-clean-100
+for set in train-clean-100 train-clean-360 train-other-500
 do
     echo "Preprocessing $set set of $corpus."
     run_preprocess.py \

@@ -1,0 +1,30 @@
+mode: dev
+data:
+  dev_paths: ['/work/harry87122/dataset/miniasr_data/dev-clean/data_list_sorted.json']
+  text:
+    mode: character
+    vocab: /work/harry87122/dataset/miniasr_data/train-clean-100/vocab_char.txt
+
+decode:
+  type: beam
+  token: /work/harry87122/dataset/miniasr_data/train-clean-100/vocab_char.fl2.txt
+  lexicon: /work/harry87122/dataset/LibriSpeech/librispeech-char-lexicon.txt
+  lm: /work/harry87122/dataset/LibriSpeech/4-gram.arpa
+  beam_size: 100
+  token_beam_size: 25
+  beam_threshold: 100.0
+  lm_weight: 0.5
+  word_score: 0.0
+  sil_score: 0.0
+  log_add: False
+
+hparam:
+  val_batch_size: 16
+  njobs: 16
+  pin_memory: true
+
+trainer:
+  gpus: 1
+  logger: false
+  default_root_dir: model/ctc_hubert_base_LS960_char
+  deterministic: true
