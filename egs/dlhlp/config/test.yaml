@@ -1,0 +1,20 @@
+mode: dev
+data:
+  dev_paths: ['data/libri_test/data_list_sorted.json']
+  text:
+    mode: character
+    vocab: data/libri_train_1h/vocab_char.txt
+
+decode:
+  type: greedy
+
+hparam:
+  val_batch_size: 16
+  njobs: 4
+  pin_memory: true
+
+trainer:
+  gpus: 1
+  logger: false
+  default_root_dir: model/ctc_libri-10h_char
+  deterministic: true
