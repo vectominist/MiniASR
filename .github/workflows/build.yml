@@ -39,7 +39,7 @@ jobs:
     #   run: pip3 install torchaudio==${{ matrix.torchaudio-version }}
 
     - name: Install MiniASR
-      run: pip3 install --editable
+      run: pip3 install --editable ./
 
     - name: Install setuptools v59.5.0
       run: pip3 install setuptools==59.5.0

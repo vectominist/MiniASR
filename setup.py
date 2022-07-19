@@ -14,7 +14,7 @@ setup(
     long_description_content_type="text/markdown",
     url="https://github.com/vectominist/MiniASR",
     author="Heng-Jui Chang",
-    author_email="b06901020@ntu.edu.tw",
+    author_email="hengjui@mit.edu",
     classifiers=[
         # How mature is this project? Common values are
         #   3 - Alpha
