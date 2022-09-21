@@ -7,6 +7,7 @@
 import logging
 import pytorch_lightning as pl
 
+
 from miniasr.data.dataloader import create_dataloader
 from miniasr.utils import load_from_checkpoint
 
@@ -30,6 +31,9 @@ def create_asr_trainer(args, device):
 
         model = ASR(tokenizer, args).to(device)
 
+        # Logger
+        csv_logger = pl.loggers.CSVLogger("./logs", name="mini_asr_training_log")
+
         # Create checkpoint callbacks
         checkpoint_callback = pl.callbacks.ModelCheckpoint(
             dirpath=args.trainer.default_root_dir,
@@ -41,6 +45,7 @@ def create_asr_trainer(args, device):
             accumulate_grad_batches=args.hparam.accum_grad,
             gradient_clip_val=args.hparam.grad_clip,
             callbacks=[checkpoint_callback],
+            logger=csv_logger,
             **args.trainer
         )
     else:

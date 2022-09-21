@@ -2,8 +2,8 @@
 
 . ./path.sh || exit 1;
 
-stage=1
-stop_stage=4
+stage=3
+stop_stage=3
 model_name=ctc_libri-10h_char
 ckpt=  # model/ctc_libri-10h_char/epoch=44-step=3869.ckpt
 

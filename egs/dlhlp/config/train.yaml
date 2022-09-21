@@ -50,7 +50,7 @@ trainer:
   check_val_every_n_epoch: 5
   gpus: 1
   precision: 16
-  logger: true
+  # logger: true
   log_every_n_steps: 5
   flush_logs_every_n_steps: 5
   default_root_dir: model/ctc_libri-10h_char
