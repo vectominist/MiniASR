@@ -45,7 +45,7 @@ class BaseASR(pl.LightningModule):
 
         # Load feature extractor (from s3prl)
         extractor = torch.hub.load(
-            's3prl/s3prl', args.model.extractor.name, verbose=False)
+            's3prl/s3prl:v0.3.4', args.model.extractor.name, verbose=False)
         self.extractor_stride = get_model_stride(args.model.extractor.name)
         self.enable_train_extractor = args.model.extractor.train
         self.extractor = extractor
