@@ -136,3 +136,4 @@ dmypy.json
 
 # models
 egs/dlhlp/model
+egs/dlhlp/data
