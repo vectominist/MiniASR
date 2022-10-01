@@ -24,7 +24,7 @@ def parse_arguments():
     """Parses arguments from command line."""
     parser = argparse.ArgumentParser("Corpus preprocessing.")
 
-    # General & critical arguments
+    # General arguments
     parser.add_argument("--corpus", "-c", type=str, help="Corpus name.")
     parser.add_argument("--path", "-p", type=str, help="Path to corpus.")
     parser.add_argument(
@@ -39,6 +39,12 @@ def parse_arguments():
         "--gen-vocab",
         action="store_true",
         help="Specify whether to generate vocabulary files.",
+    )
+    parser.add_argument(
+        "--source",
+        type=str,
+        default="text",
+        help="Source of text data in data_dict (key)",
     )
     parser.add_argument(
         "--char-vocab-size", type=int, default=-1, help="Character vocabulary size."
@@ -82,6 +88,8 @@ def main():
 
     if args.corpus == "LibriSpeech":
         from miniasr.preprocess.librispeech import find_data
+    if args.corpus == "TIMIT":
+        from miniasr.preprocess.timit import find_data
     else:
         # You may add new methods here.
         raise NotImplementedError(f"Unknown corpus {args.corpus}.")
@@ -115,7 +123,7 @@ def main():
     data_list = [
         d
         for d, l in sorted(zip(data_list, file_len), reverse=True, key=lambda x: x[1])
-        if l > 0 and len(d.get("text", "dummy")) > 0
+        if l > 0 and len(d.get(args.source, "dummy")) > 0
     ]
 
     # Save sorted data list
@@ -125,9 +133,9 @@ def main():
         json.dump(data_list, fp, indent=4, ensure_ascii=False)
 
     # Generate pure text file for LM training
-    if data_list[0].get("text", None):
+    if data_list[0].get(args.source, None):
         logging.info("Generating LM file.")
-        text_list = [d["text"] for d in data_list]
+        text_list = [d[args.source] for d in data_list]
         text_path = join(args.out, "text.txt")
         with open(text_path, "w") as fp:
             fp.write("\n".join(text_list))
