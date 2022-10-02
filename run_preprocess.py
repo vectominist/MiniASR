@@ -75,7 +75,7 @@ def parse_arguments():
 
     # Add basic arguments
     parser = base_args(parser)
-
+    # Parse arguments
     args = parser.parse_args()
     logging_args(args)
 
@@ -102,7 +102,7 @@ def main():
 
     # Find all data
     logging.info(f"Reading data from {args.path}")
-    data_dict_list = [find_data(join(args.path, s)) for s in args.set]
+    data_dict_list = [find_data(args.path, s) for s in args.set]
     data_dict, data_list = {}, []
     for d in data_dict_list:
         data_dict = {**data_dict, **d}
@@ -120,6 +120,7 @@ def main():
     file_len = Parallel(n_jobs=args.njobs)(
         delayed(getsize)(d["file"]) for d in data_list
     )
+    logging.info(f"Total audio size = {sum(file_len)} Bytes")
     data_list = [
         d
         for d, l in sorted(zip(data_list, file_len), reverse=True, key=lambda x: x[1])

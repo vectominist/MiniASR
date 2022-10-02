@@ -1,7 +1,7 @@
 #!/bin/bash
 # Script for generating librispeech data files
 
-# . ./path.sh || exit 1;
+. ./path.sh || exit 1;
 
 corpus=TIMIT
 corpus_dir=/data/sls/d/corpora/original/timit
@@ -25,7 +25,7 @@ do
         --njobs 16
 done
 
-for set in test
+for set in dev test
 do
     echo "Preprocessing $set set of $corpus."
     run_preprocess.py \
