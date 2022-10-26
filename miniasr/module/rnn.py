@@ -1,6 +1,6 @@
 """
-    File      [ encoder_rnn.py ]
-    Author    [ Heng-Jui Chang (NTUEE) ]
+    File      [ rnn.py ]
+    Author    [ Heng-Jui Chang (MIT CSAIL) ]
     Synopsis  [ RNN-based encoder. ]
 """
 

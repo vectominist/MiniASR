@@ -1,6 +1,6 @@
 """
     File      [ dataloader.py ]
-    Author    [ Heng-Jui Chang (NTUEE) ]
+    Author    [ Heng-Jui Chang (MIT CSAIL) ]
     Synopsis  [ General data loader. ]
 """
 
@@ -46,6 +46,7 @@ def audio_collate_fn(data_list, mode="train"):
             texts.append(data.get("text", ""))
             text_len.append(0)
 
+    waves = pad_sequence(waves, batch_first=True)
     wave_len = torch.LongTensor(wave_len)
 
     if mode in ["train", "dev"]:
@@ -135,3 +136,8 @@ def create_dataloader(args, tokenizer=None):
         return None, dv_loader, tokenizer
     else:
         raise NotImplementedError(f"Unknown mode {args.mode}")
+
+
+def get_dev_dataset(paths, tokenizer) -> ASRDataset:
+    dataset = ASRDataset(paths, tokenizer, "dev")
+    return dataset

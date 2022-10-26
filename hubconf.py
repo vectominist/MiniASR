@@ -1,6 +1,6 @@
 """
     File      [ hubconf.py ]
-    Author    [ Heng-Jui Chang (NTUEE) ]
+    Author    [ Heng-Jui Chang (MIT CSAIL) ]
     Synopsis  [ Hubconf. ]
 """
 

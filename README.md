@@ -48,6 +48,7 @@ A mini, simple, and fast end-to-end automatic speech recognition toolkit.
 ### Requirements
 * Python 3.6+
 * Install sox on your OS
+* Install latest [s3prl](https://github.com/s3prl/s3prl) (at least `v0.4`)
 * Install via pip:
 ```bash
 pip install -e ./

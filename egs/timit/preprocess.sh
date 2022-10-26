@@ -4,11 +4,14 @@
 . ./path.sh || exit 1;
 
 corpus=TIMIT
+vocab_type=phone
+
 corpus_dir=/data/sls/d/corpora/original/timit
-out_dir=/data/sls/scratch/hengjui/dataset/miniasr_data
-vocab_type=text
+out_dir=/data/sls/scratch/hengjui/dataset/miniasr_data/timit_$vocab_type
 
 mkdir -p $out_dir
+
+echo "Vocab type = $vocab_type (text: word / phone: phoneme)"
 
 for set in train
 do

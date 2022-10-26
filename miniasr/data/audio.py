@@ -1,6 +1,6 @@
 """
     File      [ audio.py ]
-    Author    [ Heng-Jui Chang (NTUEE) ]
+    Author    [ Heng-Jui Chang (MIT CSAIL) ]
     Synopsis  [ Audio processing. ]
 """
 
@@ -81,9 +81,15 @@ class SpecAugment:
         return feat[:, mapping, :]
 
     def frequency_masking(self, feat):
+        if feat.shape[2] == 240:
+            feat = feat.reshape(feat.shape[0], feat.shape[1], 80, 3)
         f = np.random.randint(self.freq_mask_range[0], self.freq_mask_range[1])
         f0 = np.random.randint(0, feat.shape[2] - f)
         feat[:, :, f0 : f0 + f] = 0
+        if feat.dim() == 4:
+            feat = feat.reshape(
+                feat.shape[0], feat.shape[1], feat.shape[2] * feat.shape[3]
+            )
 
     def time_masking(self, feat):
         max_t = int(feat.shape[1] * self.time_mask_max)

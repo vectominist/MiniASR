@@ -1,6 +1,6 @@
 """
     File      [ masking.py ]
-    Author    [ Heng-Jui Chang (NTUEE) ]
+    Author    [ Heng-Jui Chang (MIT CSAIL) ]
     Synopsis  [ Masking-related. ]
 """
 

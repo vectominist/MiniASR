@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
     File      [ run_preprocess.py ]
-    Author    [ Heng-Jui Chang (NTUEE) ]
+    Author    [ Heng-Jui Chang (MIT CSAIL) ]
     Synopsis  [ Preprocesses corpus. ]
 """
 

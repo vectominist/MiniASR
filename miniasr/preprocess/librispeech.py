@@ -1,6 +1,6 @@
 """
     File      [ librispeech.py ]
-    Author    [ Heng-Jui Chang (NTUEE) ]
+    Author    [ Heng-Jui Chang (MIT CSAIL) ]
     Synopsis  [ Preprocess the LibriSpeech corpus. ]
 """
 

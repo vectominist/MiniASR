@@ -1,6 +1,6 @@
 """
     File      [ text.py ]
-    Author    [ Heng-Jui Chang (NTUEE) ]
+    Author    [ Heng-Jui Chang (MIT CSAIL) ]
     Synopsis  [ Tokenizer for text data.
                 Modified from tensorflow_datasets.features.text.*
                 Ref: https://www.tensorflow.org/datasets/api_docs/python/tfds/features/text_lib  ]
@@ -175,13 +175,23 @@ class WordTextEncoder(CharacterTextEncoder):
         return "word"
 
 
+class PhoneTextEncoder(WordTextEncoder):
+    """Tokenizer for phoneme-level tokens."""
+
+    @property
+    def token_type(self):
+        return "phone"
+
+
 def load_text_encoder(mode, vocab_file):
     """Creates a text tokenizer."""
     if mode == "character":
         return CharacterTextEncoder.load_from_file(vocab_file)
     elif mode == "subword":
         return SubwordTextEncoder.load_from_file(vocab_file)
-    elif mode in ["word", "phone"]:
+    elif mode in "word":
         return WordTextEncoder.load_from_file(vocab_file)
+    elif mode in "phone":
+        return PhoneTextEncoder.load_from_file(vocab_file)
     else:
         raise NotImplementedError(mode)

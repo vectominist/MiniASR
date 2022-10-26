@@ -16,7 +16,7 @@ from .timit_dev_spkr import dev_speakers
 from .timit_phone import phone_map
 
 
-def read_text(file: str, phone_size: int = 48):
+def read_text(file: str, phone_size: int = 39):
     assert phone_size in {
         39,
         48,
@@ -40,8 +40,8 @@ def read_text(file: str, phone_size: int = 48):
             if len(line) == 0:
                 continue
 
-            t_1 = line.split(" ")[0]
-            t_2 = line.split(" ")[1]
+            t_1 = int(line.split(" ")[0])
+            t_2 = int(line.split(" ")[1])
             word = line.split(" ")[2]
             align_wrd.append((t_1, t_2, word))
 
@@ -54,8 +54,8 @@ def read_text(file: str, phone_size: int = 48):
             if len(line) == 0:
                 continue
 
-            t_1 = line.split(" ")[0]
-            t_2 = line.split(" ")[1]
+            t_1 = int(line.split(" ")[0])
+            t_2 = int(line.split(" ")[1])
             phone = line.split(" ")[2]
             if phone_size != 60:
                 phone = phone_map[phone][phone_size]

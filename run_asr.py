@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
     File      [ run_asr.py ]
-    Author    [ Heng-Jui Chang (NTUEE) ]
+    Author    [ Heng-Jui Chang (MIT CSAIL) ]
     Synopsis  [ End-to-end ASR training. ]
 """
 
@@ -14,13 +14,13 @@ from os.path import join
 import torch
 import torchaudio
 import yaml
-from easydict import EasyDict as edict
+from easydict import EasyDict
 
 from miniasr.bin.asr_trainer import create_asr_trainer, create_asr_trainer_test
 from miniasr.utils import base_args, logging_args, override, set_random_seed
 
 
-def parse_arguments():
+def parse_arguments() -> EasyDict:
     """Parses arguments from command line."""
     parser = argparse.ArgumentParser("End-to-end ASR training.")
 
@@ -63,7 +63,7 @@ def parse_arguments():
         else:
             raise RuntimeError("No config file and ckpt found!")
 
-    args = edict({**config, **vars(args)})
+    args = EasyDict({**config, **vars(args)})
 
     if args.cpu:
         args.trainer.gpus = 0
