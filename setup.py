@@ -8,7 +8,7 @@ long_description = (here / "README.md").read_text(encoding="utf-8")
 
 setup(
     name="miniasr",
-    version="0.1.1",
+    version="0.2.0",
     description="A mini, simple, and fast end-to-end automatic speech recognition toolkit.",
     long_description=long_description,
     long_description_content_type="text/markdown",
@@ -42,12 +42,9 @@ setup(
         "easydict",
         "joblib>=0.12.4",
         "librosa>=0.7.2",
-        # "numba==0.48",
         "edit_distance",
         "torch>=1.7.0",
         "torchaudio>=0.7.0",
-        # "torchvision>=0.8.0",
-        # "torchtext>=0.8.0",
         "pre-commit",
         "flake8==3.9.2",
         "black==22.3.0",
