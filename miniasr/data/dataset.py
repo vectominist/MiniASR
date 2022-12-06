@@ -56,6 +56,13 @@ class ASRDataset(Dataset):
 
         self.data_list = [d for d in data_list if len(d.get(trans_key, [0])) > 0]
 
+        for key in ["align_phone", "align_word"]:
+            if key in self.data_list[0]:
+                for i, d in enumerate(self.data_list):
+                    self.data_list[i][key] = [
+                        int(float(t) / 160) for (_, t, _) in d[key][:-1]
+                    ]
+
         logging.info(
             f"{len(self.data_list)} audio files found " f"(mode = {self.mode})"
         )

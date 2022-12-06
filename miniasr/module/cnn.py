@@ -4,10 +4,11 @@
     Synopsis  [ RNN-based encoder. ]
 """
 
-from typing import Tuple
+from typing import List, Tuple
 
 import torch
-from torch import nn
+from torch import LongTensor, Tensor, nn
+from torch.nn.utils.rnn import pad_sequence
 
 
 class DownsampleConv2d(nn.Module):
@@ -87,3 +88,62 @@ class SameConv2d(nn.Module):
         x = self.proj(x.permute(0, 2, 3, 1).reshape(B, T, D * H))
 
         return x
+
+
+class DownsampleConv2dGT(nn.Module):
+    def __init__(
+        self,
+        in_dim: int,
+        hid_dim: int,
+        out_dim: int,
+        downsample: float = 4.0,
+    ) -> None:
+        super().__init__()
+
+        self.downsample = downsample
+        self.conv = SameConv2d(in_dim, hid_dim, out_dim)
+        self.out_dim = out_dim
+
+    def forward(self, x: Tensor, x_len: LongTensor, boundaries: List[List[int]]):
+        # x: (B, T, D)
+        # x_len: (B, )
+
+        # x = self.conv(x)
+        x_len_d = x_len.cpu().tolist()
+
+        out_list = []
+        out_len_list = []
+        for b in range(x.shape[0]):
+            out = []
+            prev_t = 0
+            if self.downsample > 1.0:
+                rate = x_len_d[b] / len(boundaries[b]) / self.downsample
+            if boundaries[b][-1] < x_len_d[b]:
+                boundaries[b].append(x_len_d[b])
+            for t in boundaries[b]:
+                t = min(t, x_len_d[b])
+                if prev_t == t:
+                    continue
+                if self.downsample > 1.0:
+                    delta_t = int(round((t - prev_t) / rate))
+                    if delta_t <= 0:
+                        out.append(x[b, prev_t:t].mean(0))
+                    else:
+                        _t = prev_t
+                        while _t < t:
+                            out.append(x[b, _t : min(_t + delta_t, t)].mean(0))
+                            _t += delta_t
+                else:
+                    out.append(x[b, prev_t:t].mean(0))
+                prev_t = t
+
+            out = torch.stack(out, dim=0)
+            out_list.append(out)
+            out_len_list.append(len(out))
+
+        out = pad_sequence(out_list, batch_first=True)
+        out_len = LongTensor(out_len_list).to(x_len.device)
+
+        out = self.conv(out)
+
+        return out, out_len

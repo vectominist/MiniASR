@@ -15,6 +15,7 @@ from miniasr.model.base_asr import BaseASR
 from miniasr.module import (
     DownsampleCIF,
     DownsampleConv2d,
+    DownsampleConv2dGT,
     RNNEncoder,
     TransformerEncoder,
 )
@@ -30,13 +31,20 @@ class ASR(BaseASR):
 
         # Conv Layer
         hid_dim = self.in_dim
-        self.cnn = None
+        self.cnn, self.cif = None, None
+        self.conv_type = ""
         if self.args.model.get("cnn", None) is not None:
+            self.conv_type = "cnn"
             self.cnn = DownsampleConv2d(self.in_dim, **args.model.cnn)
             hid_dim = self.cnn.out_dim
         elif self.args.model.get("cif", None) is not None:
+            self.conv_type = "cif"
             self.cif = DownsampleCIF(self.in_dim, **args.model.cif)
             hid_dim = self.cif.out_dim
+        elif self.args.model.get("cnngt", None) is not None:
+            self.conv_type = "cnngt"
+            self.cnn = DownsampleConv2dGT(self.in_dim, **args.model.cnngt)
+            hid_dim = self.cnn.out_dim
 
         # Encoder Layer
         if self.args.model.encoder.module in {"RNN", "GRU", "LSTM"}:
@@ -128,14 +136,14 @@ class ASR(BaseASR):
             f"Word score {self.args.decode.word_score}"
         )
 
-    def forward(self, wave, wave_len):
+    def forward(self, wave, wave_len, **kwargs):
         """
         Forward function to compute logits.
         Input:
             wave [list]: list of waveform files
             wave_len [long tensor]: waveform lengths
         Output:
-            logtis [float tensor]: Batch x Time x Vocabs
+            logits [float tensor]: Batch x Time x Vocabs
             enc_len [long tensor]: encoded length (logits' lengths)
             feat [float tensor]: extracted features
             feat_len [long tensor]: length of extracted features
@@ -147,14 +155,16 @@ class ASR(BaseASR):
         feat, feat_len = self.extract_features(wave, wave_len)
 
         # CNN/CIF features
-        if self.cnn:
+        if self.conv_type == "cnn":
             feat, feat_len = self.cnn(feat, feat_len)
-        elif self.cif:
+        if self.conv_type == "cif":
             res = self.cif(feat, feat_len)
             feat, feat_len = res["x"], res["x_len"]
             other["quantity_loss"] = res["loss"]
             other["cif_prob"] = res["prob"]
             other["cif_indices"] = res["indices"]
+        if self.conv_type == "cnngt":
+            feat, feat_len = self.cnn(feat, feat_len, kwargs["other"]["align_phone"])
 
         # Encode features
         if self.args.model.encoder.module in {"RNN", "GRU", "LSTM"}:

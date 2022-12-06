@@ -13,13 +13,19 @@ model:
   extractor:
     name: fbank
     train: false
-  # cnn:
-  #   hid_dim: 64
+  cnn:
+    hid_dim: 64
+    out_dim: 256
+  # cif:
+  #   hid_dim: 256
+  #   threshold: 1.0
+  #   downsample: 8.0
+  #   calc_weight: sim-l2
+  #   window_size: 5
+  # cnngt:
+  #   hid_dim: 32
   #   out_dim: 256
-  cif:
-    hid_dim: 256
-    threshold: 1.0
-    downsample: 8.0
+  #   downsample: 4.0
   encoder:
     module: conformer
     d_model: 256
@@ -68,7 +74,7 @@ trainer:
   gpus: 1
   precision: 16
   logger: wandb
-  default_root_dir: model/ctc_conf-cif_timit_phone_9
+  default_root_dir: model/ctc_conf-cnngt_timit_phone_1
   deterministic: false
 
 wandb:

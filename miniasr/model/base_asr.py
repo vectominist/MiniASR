@@ -128,7 +128,7 @@ class BaseASR(pl.LightningModule):
 
         return feat, feat_len
 
-    def forward(self, wave, wave_len):
+    def forward(self, wave, wave_len, **kwargs):
         """Forward function to compute logits."""
         raise NotImplementedError
         # Should return logits, enc_len, feat, feat_len
@@ -146,7 +146,7 @@ class BaseASR(pl.LightningModule):
         wave_len, text_len = batch["wave_len"], batch["text_len"]
 
         # Compute logits
-        logits, enc_len, feat, feat_len, other = self(wave, wave_len)
+        logits, enc_len, feat, feat_len, other = self(**batch)
 
         # Compute loss
         loss = self.cal_loss(logits, enc_len, feat, feat_len, text, text_len)
@@ -187,7 +187,7 @@ class BaseASR(pl.LightningModule):
 
         with torch.no_grad():
             # Compute logits
-            logits, enc_len, feat, feat_len, other = self(wave, wave_len)
+            logits, enc_len, feat, feat_len, other = self(**batch)
 
             # Compute loss
             loss = self.cal_loss(logits, enc_len, feat, feat_len, text, text_len)

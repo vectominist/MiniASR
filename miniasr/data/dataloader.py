@@ -5,6 +5,7 @@
 """
 
 import logging
+from collections import defaultdict
 from functools import partial
 
 import torch
@@ -34,6 +35,7 @@ def audio_collate_fn(data_list, mode="train"):
 
     waves, wave_len = [], []
     texts, text_len = [], []
+    other = defaultdict(list)
     for data in data_list:
         # Load raw waveform
         waves.append(load_waveform(data["file"], TARGET_SR))
@@ -45,6 +47,10 @@ def audio_collate_fn(data_list, mode="train"):
         else:
             texts.append(data.get("text", ""))
             text_len.append(0)
+
+        for k, v in data.items():
+            if k not in {"file", "text"}:
+                other[k].append(v)
 
     waves = pad_sequence(waves, batch_first=True)
     wave_len = torch.LongTensor(wave_len)
@@ -59,6 +65,7 @@ def audio_collate_fn(data_list, mode="train"):
         "wave_len": wave_len,
         "text": texts,
         "text_len": text_len,
+        "other": other,
     }
 
 
