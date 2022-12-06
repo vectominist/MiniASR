@@ -1,6 +1,6 @@
 """
     File      [ base_asr.py ]
-    Author    [ Heng-Jui Chang (NTUEE) ]
+    Author    [ Heng-Jui Chang (MIT CSAIL) ]
     Synopsis  [ Base ASR model. ]
 """
 
@@ -10,9 +10,11 @@ from os.path import join
 
 import pytorch_lightning as pl
 import torch
+from easydict import EasyDict
+from s3prl.nn import Featurizer, S3PRLUpstream
 
 from miniasr.data.audio import SpecAugment
-from miniasr.module import FeatureSelection
+from miniasr.module import create_lambda_lr_warmup
 from miniasr.utils import (
     freeze_model,
     print_eval_error_rates,
@@ -21,7 +23,7 @@ from miniasr.utils import (
 )
 
 
-def get_model_stride(name):
+def get_model_stride(name: str):
     """Returns the stride of a model (in ms)"""
     return 20 if any(m in name.split("_") for m in ["hubert", "wav2vec2"]) else 10
 
@@ -40,8 +42,10 @@ class BaseASR(pl.LightningModule):
         args [EasyDict]: arguments
     """
 
-    def __init__(self, tokenizer, args):
+    def __init__(self, tokenizer, args: EasyDict):
         super().__init__()
+
+        self.save_hyperparameters(dict(args=args))
 
         # Param setting
         self.args = args
@@ -49,9 +53,7 @@ class BaseASR(pl.LightningModule):
         self.vocab_size = tokenizer.vocab_size
 
         # Load feature extractor (from s3prl)
-        extractor = torch.hub.load(
-            "s3prl/s3prl", args.model.extractor.name, verbose=False
-        )
+        extractor = S3PRLUpstream(args.model.extractor.name)
         self.extractor_stride = get_model_stride(args.model.extractor.name)
         self.enable_train_extractor = args.model.extractor.train
         self.extractor = extractor
@@ -63,8 +65,12 @@ class BaseASR(pl.LightningModule):
             self.extractor.model.encoder.layerdrop = 0
 
         # Feature selection module
-        self.feat_select = FeatureSelection(extractor, args.model.extractor.feature)
-        self.in_dim = self.feat_select.feat_dim
+        self.feat_select = Featurizer(
+            extractor,
+            args.model.extractor.get("layer_selections", None),
+            args.model.extractor.get("normalize", False),
+        )
+        self.in_dim = self.feat_select.output_size
 
         # Data augmentation
         self.specaug = None
@@ -77,19 +83,23 @@ class BaseASR(pl.LightningModule):
 
     def configure_optimizers(self):
         """Sets optimizer."""
-        return getattr(torch.optim, self.args.model.optim.algo)(
+        optimizer = getattr(torch.optim, self.args.model.optim.algo)(
             self.parameters(), **self.args.model.optim.kwargs
         )
-
-    def cal_feat_len(self, x_len: torch.Tensor):
-        """Calculates feature lengths."""
-
-        feat_len = [
-            extracted_length(x_len[i].cpu().item(), self.extractor_stride)
-            for i in range(len(x_len))
-        ]
-
-        return torch.LongTensor(feat_len).to(x_len.device)
+        if self.args.model.optim.get("scheduler", None):
+            scheduler = create_lambda_lr_warmup(
+                optimizer, **self.args.model.optim.scheduler
+            )
+            return {
+                "optimizer": optimizer,
+                "lr_scheduler": {
+                    "scheduler": scheduler,
+                    "frequency": 1,
+                    "interval": "step",
+                },
+            }
+        else:
+            return optimizer
 
     def extract_features(self, wave, wave_len):
         """
@@ -104,14 +114,13 @@ class BaseASR(pl.LightningModule):
 
         # Extract features
         if self.enable_train_extractor:
-            emb_dict = self.extractor(wave)
+            feat, feat_len = self.extractor(wave, wave_len)
         else:
             with torch.no_grad():
-                emb_dict = self.extractor(wave)
+                feat, feat_len = self.extractor(wave, wave_len)
 
         # Get features
-        feat = self.feat_select(emb_dict)
-        feat_len = self.cal_feat_len(wave_len)
+        feat, feat_len = self.feat_select(feat, feat_len)
 
         # Data augmentation
         if self.training and self.specaug is not None:
@@ -119,7 +128,7 @@ class BaseASR(pl.LightningModule):
 
         return feat, feat_len
 
-    def forward(self, wave, wave_len):
+    def forward(self, wave, wave_len, **kwargs):
         """Forward function to compute logits."""
         raise NotImplementedError
         # Should return logits, enc_len, feat, feat_len
@@ -137,10 +146,25 @@ class BaseASR(pl.LightningModule):
         wave_len, text_len = batch["wave_len"], batch["text_len"]
 
         # Compute logits
-        logits, enc_len, feat, feat_len = self(wave, wave_len)
+        logits, enc_len, feat, feat_len, other = self(**batch)
 
         # Compute loss
         loss = self.cal_loss(logits, enc_len, feat, feat_len, text, text_len)
+        self.log("train_ctc_loss", loss)
+
+        if "kmeans_loss" in other:
+            # VQ
+            kmeans_loss = torch.stack(other["kmeans_loss"], dim=0).sum()
+            loss += kmeans_loss
+            self.log("train_kmeans_loss", kmeans_loss)
+            if "code_perplexity" in other:
+                for i, ppl in enumerate(other["code_perplexity"]):
+                    self.log(f"code_ppl/layer_{i}", ppl)
+        if "quantity_loss" in other:
+            # CIF
+            quantity_loss = other["quantity_loss"]
+            loss += quantity_loss
+            self.log("train_quantity_loss", quantity_loss)
 
         # Log information
         self.log("train_loss", loss)
@@ -163,7 +187,7 @@ class BaseASR(pl.LightningModule):
 
         with torch.no_grad():
             # Compute logits
-            logits, enc_len, feat, feat_len = self(wave, wave_len)
+            logits, enc_len, feat, feat_len, other = self(**batch)
 
             # Compute loss
             loss = self.cal_loss(logits, enc_len, feat, feat_len, text, text_len)
@@ -205,7 +229,13 @@ class BaseASR(pl.LightningModule):
                     word_res[key] += val
 
                 # Show some samples
-                if i == len(outputs) // 2 and j < 5:
+                if (
+                    i == len(outputs) // 2
+                    and j < 5
+                    and isinstance(
+                        self.logger, pl.loggers.tensorboard.TensorBoardLogger
+                    )
+                ):
                     self.logger.experiment.add_text(
                         f"val_sample_{j}_ref", ref, self.global_step
                     )

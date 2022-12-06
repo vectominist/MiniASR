@@ -48,12 +48,19 @@ A mini, simple, and fast end-to-end automatic speech recognition toolkit.
 ### Requirements
 * Python 3.6+
 * Install sox on your OS
+* Install latest [s3prl](https://github.com/s3prl/s3prl) (at least `v0.4`)
+```bash
+git clone https://github.com/s3prl/s3prl.git
+cd s3prl
+pip install -e ./
+cd ..
+```
 * Install via pip:
 ```bash
 pip install -e ./
 ```
 Additional libraries:
-* [fairseq](https://github.com/pytorch/fairseq): to use pre-trained feature extractors like wav2vec 2.0 or HuBERT.
+<!-- * [fairseq](https://github.com/pytorch/fairseq): to use pre-trained feature extractors like wav2vec 2.0 or HuBERT. -->
 * [flashlight](https://github.com/flashlight/flashlight): to decode with LM and beam search.
 
 
@@ -132,7 +139,6 @@ See `egs/`.
 | 100h | hubert (fixed) | BLSTM | 95 + 40M | LM     | 4.1        | 9.9        | -->
 
 ## TODO List
-* Google Colab support
 * `torch.hub` support
 * Releasing pre-trained ASR models
 

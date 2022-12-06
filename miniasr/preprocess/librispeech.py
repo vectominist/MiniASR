@@ -1,9 +1,10 @@
 """
     File      [ librispeech.py ]
-    Author    [ Heng-Jui Chang (NTUEE) ]
+    Author    [ Heng-Jui Chang (MIT CSAIL) ]
     Synopsis  [ Preprocess the LibriSpeech corpus. ]
 """
 
+import os
 from pathlib import Path
 
 
@@ -21,7 +22,7 @@ def read_text(file):
         return trans_dict
 
 
-def find_data(root):
+def find_data(root: str, split: str = "train-clean-100"):
     """
     Find all files in LibriSpeech.
     Output:
@@ -35,6 +36,7 @@ def find_data(root):
     """
 
     # Find all audio files
+    root = os.path.join(root, split)
     audio_list = list(Path(root).rglob("*.flac"))
     audio_list = sorted([str(f) for f in audio_list])
 

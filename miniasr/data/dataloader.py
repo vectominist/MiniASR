@@ -1,10 +1,11 @@
 """
     File      [ dataloader.py ]
-    Author    [ Heng-Jui Chang (NTUEE) ]
+    Author    [ Heng-Jui Chang (MIT CSAIL) ]
     Synopsis  [ General data loader. ]
 """
 
 import logging
+from collections import defaultdict
 from functools import partial
 
 import torch
@@ -34,6 +35,7 @@ def audio_collate_fn(data_list, mode="train"):
 
     waves, wave_len = [], []
     texts, text_len = [], []
+    other = defaultdict(list)
     for data in data_list:
         # Load raw waveform
         waves.append(load_waveform(data["file"], TARGET_SR))
@@ -46,6 +48,11 @@ def audio_collate_fn(data_list, mode="train"):
             texts.append(data.get("text", ""))
             text_len.append(0)
 
+        for k, v in data.items():
+            if k not in {"file", "text"}:
+                other[k].append(v)
+
+    waves = pad_sequence(waves, batch_first=True)
     wave_len = torch.LongTensor(wave_len)
 
     if mode in ["train", "dev"]:
@@ -58,6 +65,7 @@ def audio_collate_fn(data_list, mode="train"):
         "wave_len": wave_len,
         "text": texts,
         "text_len": text_len,
+        "other": other,
     }
 
 
@@ -135,3 +143,8 @@ def create_dataloader(args, tokenizer=None):
         return None, dv_loader, tokenizer
     else:
         raise NotImplementedError(f"Unknown mode {args.mode}")
+
+
+def get_dev_dataset(paths, tokenizer) -> ASRDataset:
+    dataset = ASRDataset(paths, tokenizer, "dev")
+    return dataset

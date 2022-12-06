@@ -1,6 +1,6 @@
 """
     File      [ model_utils.py ]
-    Author    [ Heng-Jui Chang (NTUEE) ]
+    Author    [ Heng-Jui Chang (MIT CSAIL) ]
     Synopsis  [ Some utilities for models. ]
 """
 

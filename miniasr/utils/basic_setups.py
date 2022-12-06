@@ -1,6 +1,6 @@
 """
     File      [ base_setups.py ]
-    Author    [ Heng-Jui Chang (NTUEE) ]
+    Author    [ Heng-Jui Chang (MIT CSAIL) ]
     Synopsis  [ Basic setups. ]
 """
 

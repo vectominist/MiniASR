@@ -1,6 +1,6 @@
 """
     File      [ ctc_asr.py ]
-    Author    [ Heng-Jui Chang (NTUEE) ]
+    Author    [ Heng-Jui Chang (MIT CSAIL) ]
     Synopsis  [ CTC ASR model. ]
 """
 
@@ -8,10 +8,17 @@ import logging
 
 import numpy as np
 import torch
+from easydict import EasyDict
 from torch import nn
 
 from miniasr.model.base_asr import BaseASR
-from miniasr.module import RNNEncoder
+from miniasr.module import (
+    DownsampleCIF,
+    DownsampleConv2d,
+    DownsampleConv2dGT,
+    RNNEncoder,
+    TransformerEncoder,
+)
 
 
 class ASR(BaseASR):
@@ -19,12 +26,31 @@ class ASR(BaseASR):
     CTC ASR model
     """
 
-    def __init__(self, tokenizer, args):
+    def __init__(self, tokenizer, args: EasyDict):
         super().__init__(tokenizer, args)
 
-        # Main model setup
-        if self.args.model.encoder.module in ["RNN", "GRU", "LSTM"]:
-            self.encoder = RNNEncoder(self.in_dim, **args.model.encoder)
+        # Conv Layer
+        hid_dim = self.in_dim
+        self.cnn, self.cif = None, None
+        self.conv_type = ""
+        if self.args.model.get("cnn", None) is not None:
+            self.conv_type = "cnn"
+            self.cnn = DownsampleConv2d(self.in_dim, **args.model.cnn)
+            hid_dim = self.cnn.out_dim
+        elif self.args.model.get("cif", None) is not None:
+            self.conv_type = "cif"
+            self.cif = DownsampleCIF(self.in_dim, **args.model.cif)
+            hid_dim = self.cif.out_dim
+        elif self.args.model.get("cnngt", None) is not None:
+            self.conv_type = "cnngt"
+            self.cnn = DownsampleConv2dGT(self.in_dim, **args.model.cnngt)
+            hid_dim = self.cnn.out_dim
+
+        # Encoder Layer
+        if self.args.model.encoder.module in {"RNN", "GRU", "LSTM"}:
+            self.encoder = RNNEncoder(hid_dim, **args.model.encoder)
+        elif self.args.model.encoder.module in {"transformer", "conformer"}:
+            self.encoder = TransformerEncoder(hid_dim, **args.model.encoder)
         else:
             raise NotImplementedError(
                 f"Unkown encoder module {self.args.model.encoder.module}"
@@ -33,11 +59,14 @@ class ASR(BaseASR):
         self.ctc_output_layer = nn.Linear(self.encoder.out_dim, self.vocab_size)
 
         # Loss function (CTC loss)
-        self.ctc_loss = torch.nn.CTCLoss(blank=0, zero_infinity=True)
+        self.ctc_loss = nn.CTCLoss(blank=0, zero_infinity=True)
 
         # Beam decoding with Flashlight
         self.enable_beam_decode = False
-        if self.args.mode in {"dev", "test"} and self.args.decode.type == "beam":
+        if (
+            self.args.mode in {"dev", "test"}
+            and self.args.get("decode", {}).get("type", "greedy") == "beam"
+        ):
             self.enable_beam_decode = True
             self.setup_flashlight()
 
@@ -107,29 +136,48 @@ class ASR(BaseASR):
             f"Word score {self.args.decode.word_score}"
         )
 
-    def forward(self, wave, wave_len):
+    def forward(self, wave, wave_len, **kwargs):
         """
         Forward function to compute logits.
         Input:
             wave [list]: list of waveform files
             wave_len [long tensor]: waveform lengths
         Output:
-            logtis [float tensor]: Batch x Time x Vocabs
+            logits [float tensor]: Batch x Time x Vocabs
             enc_len [long tensor]: encoded length (logits' lengths)
             feat [float tensor]: extracted features
             feat_len [long tensor]: length of extracted features
         """
 
+        other = {}
+
         # Extract features
         feat, feat_len = self.extract_features(wave, wave_len)
 
+        # CNN/CIF features
+        if self.conv_type == "cnn":
+            feat, feat_len = self.cnn(feat, feat_len)
+        if self.conv_type == "cif":
+            res = self.cif(feat, feat_len)
+            feat, feat_len = res["x"], res["x_len"]
+            other["quantity_loss"] = res["loss"]
+            other["cif_prob"] = res["prob"]
+            other["cif_indices"] = res["indices"]
+        if self.conv_type == "cnngt":
+            feat, feat_len = self.cnn(feat, feat_len, kwargs["other"]["align_phone"])
+
         # Encode features
-        enc, enc_len = self.encoder(feat, feat_len)
+        if self.args.model.encoder.module in {"RNN", "GRU", "LSTM"}:
+            enc, enc_len = self.encoder(feat, feat_len)
+        if self.args.model.encoder.module in {"transformer", "conformer"}:
+            enc, _other = self.encoder(feat, feat_len)
+            enc_len = feat_len
+            other = {**other, **_other}
 
         # Project hidden features to vocabularies
         logits = self.ctc_output_layer(enc)
 
-        return logits, enc_len, feat, feat_len
+        return logits, enc_len, feat, feat_len, other
 
     def cal_loss(self, logits, enc_len, feat, feat_len, text, text_len):
         """Computes CTC loss."""
